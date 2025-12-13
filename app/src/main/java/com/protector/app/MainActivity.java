@@ -83,11 +83,18 @@ public class MainActivity extends AppCompatActivity {
         
         // Save proximity radius
         try {
-            float radius = Float.parseFloat(etProximityRadius.getText().toString());
+            String radiusText = etProximityRadius.getText().toString().trim();
+            if (radiusText.isEmpty()) {
+                throw new NumberFormatException("Empty input");
+            }
+            float radius = Float.parseFloat(radiusText);
+            if (radius <= 0 || radius > 10000) {
+                throw new NumberFormatException("Out of range");
+            }
             preferences.edit().putFloat("proximity_radius", radius).apply();
         } catch (NumberFormatException e) {
             preferences.edit().putFloat("proximity_radius", 50.0f).apply();
-            Toast.makeText(this, "Invalid radius value, using default: 50m", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Invalid radius value (must be 1-10000m), using default: 50m", Toast.LENGTH_SHORT).show();
         }
         
         Intent serviceIntent = new Intent(this, ProtectionService.class);
