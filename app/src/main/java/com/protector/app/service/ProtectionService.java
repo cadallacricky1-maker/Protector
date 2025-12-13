@@ -186,8 +186,8 @@ public class ProtectionService extends Service implements SensorEventListener {
             updateLocationTrackingInterval(LOCATION_UPDATE_INTERVAL_MOVING);
             
             // Re-register for next significant motion (it auto-cancels after trigger)
-            if (significantMotionSensor != null) {
-                sensorManager.requestTriggerSensor(this, significantMotionSensor);
+            if (significantMotionSensor != null && sensorManager != null) {
+                sensorManager.requestTriggerSensor(significantMotionTriggerListener, significantMotionSensor);
             }
         }
     };
