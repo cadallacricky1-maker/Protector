@@ -1,3 +1,13 @@
+/*
+ * Copyright (c) 2025 cadallacricky1-maker
+ * All Rights Reserved.
+ * 
+ * PROPRIETARY AND CONFIDENTIAL
+ * 
+ * This software is the proprietary information of cadallacricky1-maker.
+ * Unauthorized copying, distribution, or use is strictly prohibited.
+ */
+
 package com.protector.app.service;
 
 import android.content.Context;

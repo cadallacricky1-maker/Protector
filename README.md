@@ -144,11 +144,15 @@ While protection is active, you can use these voice commands:
 - Remote device locking via smartwatch
 - Integration with smart home systems
 
-## Contributing
-Contributions are welcome! Please feel free to submit pull requests or open issues for bugs and feature requests.
-
 ## License
-See LICENSE file for details.
+This is proprietary software. All rights reserved.
 
-## Support
-For issues and questions, please open an issue on GitHub.
+Copyright (c) 2025 cadallacricky1-maker
+
+This software is licensed for private commercial development use only. 
+Unauthorized copying, modification, distribution, or use is strictly prohibited.
+
+See LICENSE file for complete terms and conditions.
+
+## Contact
+For licensing inquiries or commercial partnerships, contact: cadallacricky1-maker
