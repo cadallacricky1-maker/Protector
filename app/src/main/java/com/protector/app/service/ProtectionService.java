@@ -302,9 +302,11 @@ public class ProtectionService extends Service implements SensorEventListener {
      * Disable voice recognition to save battery
      */
     private void disableVoiceRecognition() {
-        if (voiceRecognitionManager != null && isVoiceRecognitionActive) {
-            voiceRecognitionManager.stopListening();
-            isVoiceRecognitionActive = false;
+        if (voiceRecognitionManager != null) {
+            if (isVoiceRecognitionActive) {
+                voiceRecognitionManager.stopListening();
+                isVoiceRecognitionActive = false;
+            }
         }
     }
     
