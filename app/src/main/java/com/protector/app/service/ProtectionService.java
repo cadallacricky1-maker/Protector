@@ -78,6 +78,7 @@ public class ProtectionService extends Service implements SensorEventListener {
     private SensorManager sensorManager;
     private Sensor accelerometer;
     private Sensor significantMotionSensor;
+    private boolean isSignificantMotionRegistered = false;
     private FusedLocationProviderClient fusedLocationClient;
     private LocationCallback locationCallback;
     
@@ -132,7 +133,7 @@ public class ProtectionService extends Service implements SensorEventListener {
     
     /**
      * Battery-optimized sensor initialization
-     * Uses Significant Motion Sensor for low-power detection
+     * Uses Significant Motion Sensor for low-power detection (API 18+)
      * Only enables continuous accelerometer when motion detected
      */
     private void initializeBatteryOptimizedSensors() {
@@ -140,12 +141,19 @@ public class ProtectionService extends Service implements SensorEventListener {
         if (sensorManager == null) return;
         
         // Try to use Significant Motion Sensor first (ultra low power)
-        significantMotionSensor = sensorManager.getDefaultSensor(Sensor.TYPE_SIGNIFICANT_MOTION);
-        if (significantMotionSensor != null) {
-            // This sensor triggers once and auto-cancels, uses hardware sensor hub
-            sensorManager.requestTriggerSensor(significantMotionTriggerListener, significantMotionSensor);
+        // Available from API 18 (Android 4.3+), our min is API 26
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            significantMotionSensor = sensorManager.getDefaultSensor(Sensor.TYPE_SIGNIFICANT_MOTION);
+            if (significantMotionSensor != null) {
+                // This sensor triggers once and auto-cancels, uses hardware sensor hub
+                boolean registered = sensorManager.requestTriggerSensor(significantMotionTriggerListener, significantMotionSensor);
+                isSignificantMotionRegistered = registered;
+            } else {
+                // Fallback: Use accelerometer with low power delay
+                enableAccelerometerMonitoring(false);
+            }
         } else {
-            // Fallback: Use accelerometer with low power delay
+            // API < 18: Use accelerometer with low power delay
             enableAccelerometerMonitoring(false);
         }
     }
@@ -187,7 +195,8 @@ public class ProtectionService extends Service implements SensorEventListener {
             
             // Re-register for next significant motion (it auto-cancels after trigger)
             if (significantMotionSensor != null && sensorManager != null) {
-                sensorManager.requestTriggerSensor(significantMotionTriggerListener, significantMotionSensor);
+                boolean registered = sensorManager.requestTriggerSensor(significantMotionTriggerListener, significantMotionSensor);
+                isSignificantMotionRegistered = registered;
             }
         }
     };
@@ -491,8 +500,9 @@ public class ProtectionService extends Service implements SensorEventListener {
         if (sensorManager != null) {
             sensorManager.unregisterListener(this);
             // Cancel significant motion sensor if active
-            if (significantMotionSensor != null) {
+            if (significantMotionSensor != null && isSignificantMotionRegistered) {
                 sensorManager.cancelTriggerSensor(significantMotionTriggerListener, significantMotionSensor);
+                isSignificantMotionRegistered = false;
             }
         }
         
@@ -500,8 +510,7 @@ public class ProtectionService extends Service implements SensorEventListener {
             fusedLocationClient.removeLocationUpdates(locationCallback);
         }
         
-        if (voiceRecognitionManager != null) {
-            voiceRecognitionManager.stopListening();
-        }
+        // Properly cleanup voice recognition
+        disableVoiceRecognition();
     }
 }
