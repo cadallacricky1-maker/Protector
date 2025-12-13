@@ -95,6 +95,12 @@ public class ProtectionService extends Service implements SensorEventListener {
     private void initializeLocationTracking() {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         
+        // Check for location permission before requesting updates
+        if (checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) 
+                != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        
         LocationRequest locationRequest = new LocationRequest.Builder(
             Priority.PRIORITY_HIGH_ACCURACY, 5000)
             .setMinUpdateIntervalMillis(2000)

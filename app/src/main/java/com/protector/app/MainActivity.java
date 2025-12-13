@@ -87,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
             preferences.edit().putFloat("proximity_radius", radius).apply();
         } catch (NumberFormatException e) {
             preferences.edit().putFloat("proximity_radius", 50.0f).apply();
+            Toast.makeText(this, "Invalid radius value, using default: 50m", Toast.LENGTH_SHORT).show();
         }
         
         Intent serviceIntent = new Intent(this, ProtectionService.class);

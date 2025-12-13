@@ -22,6 +22,11 @@ public class VoiceRecognitionManager {
     private static final String TAG = "VoiceRecognitionManager";
     private static final float VOICE_MATCH_THRESHOLD = 0.7f; // Similarity threshold for voice matching
     
+    // Voice command grammar
+    private static final String[] VOICE_COMMANDS = {
+        "disable warnings", "enable warnings", "turn off", "turn on", "stop alert"
+    };
+    
     private Context context;
     private SharedPreferences preferences;
     private SpeechService speechService;
@@ -63,7 +68,15 @@ public class VoiceRecognitionManager {
             Recognizer recognizer = new Recognizer(model, 16000.0f);
             
             // Set up grammar for specific commands
-            recognizer.setGrammar("[\"disable warnings\", \"enable warnings\", \"turn off\", \"turn on\", \"stop alert\"]");
+            StringBuilder grammar = new StringBuilder("[");
+            for (int i = 0; i < VOICE_COMMANDS.length; i++) {
+                grammar.append("\"").append(VOICE_COMMANDS[i]).append("\"");
+                if (i < VOICE_COMMANDS.length - 1) {
+                    grammar.append(", ");
+                }
+            }
+            grammar.append("]");
+            recognizer.setGrammar(grammar.toString());
             
         } catch (IOException e) {
             Log.e(TAG, "Failed to initialize recognizer", e);
@@ -232,6 +245,11 @@ public class VoiceRecognitionManager {
         String[] currentWords = current.toLowerCase().split("\\s+");
         String[] storedWords = stored.toLowerCase().split("\\s+");
         
+        // Protect against empty arrays
+        if (currentWords.length == 0 || storedWords.length == 0) {
+            return 0;
+        }
+        
         for (String word : currentWords) {
             for (String storedWord : storedWords) {
                 if (word.equals(storedWord)) {
@@ -241,7 +259,6 @@ public class VoiceRecognitionManager {
             }
         }
         
-        if (currentWords.length == 0) return 0;
         return (float) matches / currentWords.length;
     }
     
