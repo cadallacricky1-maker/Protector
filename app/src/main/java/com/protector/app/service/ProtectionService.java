@@ -70,6 +70,7 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.Priority;
 import com.protector.app.MainActivity;
 import com.protector.app.R;
+import com.protector.app.util.ErrorHandler;
 import com.protector.app.wear.WearCommunicator;
 
 public class ProtectionService extends Service implements SensorEventListener {
@@ -118,22 +119,35 @@ public class ProtectionService extends Service implements SensorEventListener {
     public void onCreate() {
         super.onCreate();
         
-        preferences = getSharedPreferences("ProtectorPrefs", MODE_PRIVATE);
-        notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-        powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
-        wearCommunicator = new WearCommunicator(this);
-        
-        proximityRadius = preferences.getFloat("proximity_radius", 50.0f);
-        
-        // Battery optimization: Initialize sensors intelligently
-        initializeBatteryOptimizedSensors();
-        initializeBatteryOptimizedLocationTracking();
-        
-        // Voice recognition is NOT started here - it's on-demand only
-        // This saves significant battery
-        
-        startForeground(NOTIFICATION_ID, createNotification("Monitoring your device (Battery Optimized)"));
+        try {
+            preferences = getSharedPreferences("ProtectorPrefs", MODE_PRIVATE);
+            notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+            powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+            
+            // Initialize Wear communicator with error handling
+            try {
+                wearCommunicator = new WearCommunicator(this);
+            } catch (Exception e) {
+                ErrorHandler.handleError(this, "ProtectionService", "WearCommunicator initialization", e, false);
+                ErrorHandler.logWarning("ProtectionService", "Continuing without Wear OS support");
+            }
+            
+            proximityRadius = preferences.getFloat("proximity_radius", 50.0f);
+            
+            // Battery optimization: Initialize sensors intelligently with error handling
+            initializeBatteryOptimizedSensors();
+            initializeBatteryOptimizedLocationTracking();
+            
+            // Voice recognition is NOT started here - it's on-demand only
+            // This saves significant battery
+            
+            startForeground(NOTIFICATION_ID, createNotification("Monitoring your device (Battery Optimized)"));
+            ErrorHandler.logInfo("ProtectionService", "Service started successfully");
+        } catch (Exception e) {
+            ErrorHandler.handleError(this, "ProtectionService", "onCreate", e);
+            stopSelf(); // Stop service if critical initialization fails
+        }
     }
 
     @Override
@@ -152,24 +166,43 @@ public class ProtectionService extends Service implements SensorEventListener {
      * Only enables continuous accelerometer when motion detected
      */
     private void initializeBatteryOptimizedSensors() {
-        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        if (sensorManager == null) return;
-        
-        // Try to use Significant Motion Sensor first (ultra low power)
-        // Available from API 18 (Android 4.3+), our min is API 26
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-            significantMotionSensor = sensorManager.getDefaultSensor(Sensor.TYPE_SIGNIFICANT_MOTION);
-            if (significantMotionSensor != null) {
-                // This sensor triggers once and auto-cancels, uses hardware sensor hub
-                boolean registered = sensorManager.requestTriggerSensor(significantMotionTriggerListener, significantMotionSensor);
-                isSignificantMotionRegistered = registered;
+        try {
+            sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+            if (sensorManager == null) {
+                ErrorHandler.logWarning("ProtectionService", "SensorManager not available");
+                return;
+            }
+            
+            // Try to use Significant Motion Sensor first (ultra low power)
+            // Available from API 18 (Android 4.3+), our min is API 26
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                significantMotionSensor = sensorManager.getDefaultSensor(Sensor.TYPE_SIGNIFICANT_MOTION);
+                if (significantMotionSensor != null) {
+                    // This sensor triggers once and auto-cancels, uses hardware sensor hub
+                    try {
+                        boolean registered = sensorManager.requestTriggerSensor(significantMotionTriggerListener, significantMotionSensor);
+                        isSignificantMotionRegistered = registered;
+                        if (!registered) {
+                            ErrorHandler.logWarning("ProtectionService", "Failed to register significant motion sensor, using fallback");
+                            enableAccelerometerMonitoring(false);
+                        } else {
+                            ErrorHandler.logInfo("ProtectionService", "Significant motion sensor registered successfully");
+                        }
+                    } catch (Exception e) {
+                        ErrorHandler.handleError(this, "ProtectionService", "significant motion sensor registration", e, false);
+                        enableAccelerometerMonitoring(false);
+                    }
+                } else {
+                    ErrorHandler.logWarning("ProtectionService", "Significant motion sensor not available, using fallback");
+                    // Fallback: Use accelerometer with low power delay
+                    enableAccelerometerMonitoring(false);
+                }
             } else {
-                // Fallback: Use accelerometer with low power delay
+                // API < 18: Use accelerometer with low power delay
                 enableAccelerometerMonitoring(false);
             }
-        } else {
-            // API < 18: Use accelerometer with low power delay
-            enableAccelerometerMonitoring(false);
+        } catch (Exception e) {
+            ErrorHandler.handleError(this, "ProtectionService", "sensor initialization", e, false);
         }
     }
     
@@ -178,17 +211,29 @@ public class ProtectionService extends Service implements SensorEventListener {
      * @param highPower true for theft detection, false for normal monitoring
      */
     private void enableAccelerometerMonitoring(boolean highPower) {
-        if (sensorManager == null) return;
+        if (sensorManager == null) {
+            ErrorHandler.logWarning("ProtectionService", "Cannot enable accelerometer: SensorManager is null");
+            return;
+        }
         
-        // Unregister previous listener
-        sensorManager.unregisterListener(this);
-        
-        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        if (accelerometer != null) {
-            // Use SENSOR_DELAY_UI for better battery (vs SENSOR_DELAY_NORMAL)
-            // UI delay is ~60Hz vs Normal ~200Hz, sufficient for theft detection
-            int sensorDelay = highPower ? SensorManager.SENSOR_DELAY_NORMAL : SensorManager.SENSOR_DELAY_UI;
-            sensorManager.registerListener(this, accelerometer, sensorDelay);
+        try {
+            // Unregister previous listener
+            sensorManager.unregisterListener(this);
+            
+            accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+            if (accelerometer != null) {
+                // Use SENSOR_DELAY_UI for better battery (vs SENSOR_DELAY_NORMAL)
+                // UI delay is ~60Hz vs Normal ~200Hz, sufficient for theft detection
+                int sensorDelay = highPower ? SensorManager.SENSOR_DELAY_NORMAL : SensorManager.SENSOR_DELAY_UI;
+                boolean success = sensorManager.registerListener(this, accelerometer, sensorDelay);
+                if (!success) {
+                    ErrorHandler.logWarning("ProtectionService", "Failed to register accelerometer listener");
+                }
+            } else {
+                ErrorHandler.logWarning("ProtectionService", "Accelerometer sensor not available on this device");
+            }
+        } catch (Exception e) {
+            ErrorHandler.handleError(this, "ProtectionService", "accelerometer monitoring", e, false);
         }
     }
     
@@ -221,38 +266,52 @@ public class ProtectionService extends Service implements SensorEventListener {
      * Uses adaptive intervals and batching to minimize battery drain
      */
     private void initializeBatteryOptimizedLocationTracking() {
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-        
-        // Check for location permission before requesting updates
-        if (checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) 
-                != android.content.pm.PackageManager.PERMISSION_GRANTED) {
-            return;
-        }
-        
-        locationCallback = new LocationCallback() {
-            @Override
-            public void onLocationResult(LocationResult locationResult) {
-                if (locationResult == null) return;
-                
-                lastLocationUpdateTime = System.currentTimeMillis();
-                
-                for (Location location : locationResult.getLocations()) {
-                    handleLocationUpdate(location);
-                }
-            }
-        };
-        
-        // Start with stationary interval (battery-friendly)
-        updateLocationTrackingInterval(LOCATION_UPDATE_INTERVAL_STATIONARY);
-        
         try {
-            fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
-                if (location != null) {
-                    initialLocation = location;
+            fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+            
+            // Check for location permission before requesting updates
+            if (checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) 
+                    != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                ErrorHandler.logWarning("ProtectionService", "Location permission not granted");
+                return;
+            }
+            
+            locationCallback = new LocationCallback() {
+                @Override
+                public void onLocationResult(LocationResult locationResult) {
+                    if (locationResult == null) return;
+                    
+                    try {
+                        lastLocationUpdateTime = System.currentTimeMillis();
+                        
+                        for (Location location : locationResult.getLocations()) {
+                            handleLocationUpdate(location);
+                        }
+                    } catch (Exception e) {
+                        ErrorHandler.handleError(ProtectionService.this, "ProtectionService", "location result handling", e, false);
+                    }
                 }
-            });
-        } catch (SecurityException e) {
-            e.printStackTrace();
+            };
+            
+            // Start with stationary interval (battery-friendly)
+            updateLocationTrackingInterval(LOCATION_UPDATE_INTERVAL_STATIONARY);
+            
+            try {
+                fusedLocationClient.getLastLocation()
+                    .addOnSuccessListener(location -> {
+                        if (location != null) {
+                            initialLocation = location;
+                            ErrorHandler.logInfo("ProtectionService", "Initial location obtained");
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        ErrorHandler.handleError(ProtectionService.this, "ProtectionService", "get last location", (Exception) e, false);
+                    });
+            } catch (SecurityException e) {
+                ErrorHandler.handleError(this, "ProtectionService", "location permission check", e, false);
+            }
+        } catch (Exception e) {
+            ErrorHandler.handleError(this, "ProtectionService", "location tracking initialization", e, false);
         }
     }
     
@@ -290,38 +349,61 @@ public class ProtectionService extends Service implements SensorEventListener {
      * Only activates when user interacts with device or on specific events
      */
     private void enableVoiceRecognitionOnDemand() {
-        boolean voiceAuthEnabled = preferences.getBoolean("voice_auth_enabled", false);
-        if (!voiceAuthEnabled || isVoiceRecognitionActive) return;
-        
-        if (voiceRecognitionManager == null) {
-            voiceRecognitionManager = new VoiceRecognitionManager(this);
-        }
-        
-        voiceRecognitionManager.startListening(new VoiceRecognitionManager.VoiceCallback() {
-            @Override
-            public void onVoiceDetected(String text) {
-                handleVoiceCommand(text);
+        try {
+            boolean voiceAuthEnabled = preferences.getBoolean("voice_auth_enabled", false);
+            if (!voiceAuthEnabled || isVoiceRecognitionActive) return;
+            
+            if (voiceRecognitionManager == null) {
+                try {
+                    voiceRecognitionManager = new VoiceRecognitionManager(this);
+                } catch (Exception e) {
+                    ErrorHandler.handleError(this, "ProtectionService", "voice recognition manager initialization", e, false);
+                    return;
+                }
             }
             
-            @Override
-            public void onUnauthorizedVoice() {
-                sendAlert("Unauthorized Voice", "Voice not recognized. Device alert engaging.");
-                // Keep listening for a bit after unauthorized voice
-            }
-        });
-        
-        isVoiceRecognitionActive = true;
+            voiceRecognitionManager.startListening(new VoiceRecognitionManager.VoiceCallback() {
+                @Override
+                public void onVoiceDetected(String text) {
+                    try {
+                        handleVoiceCommand(text);
+                    } catch (Exception e) {
+                        ErrorHandler.handleError(ProtectionService.this, "ProtectionService", "voice command handling", e, false);
+                    }
+                }
+                
+                @Override
+                public void onUnauthorizedVoice() {
+                    try {
+                        sendAlert("Unauthorized Voice", "Voice not recognized. Device alert engaging.");
+                        sendSmartWatchAlert("UNAUTHORIZED_VOICE");
+                    } catch (Exception e) {
+                        ErrorHandler.handleError(ProtectionService.this, "ProtectionService", "unauthorized voice handling", e, false);
+                    }
+                }
+            });
+            
+            isVoiceRecognitionActive = true;
+            ErrorHandler.logInfo("ProtectionService", "Voice recognition enabled on demand");
+        } catch (Exception e) {
+            ErrorHandler.handleError(this, "ProtectionService", "voice recognition enablement", e, false);
+        }
     }
     
     /**
      * Disable voice recognition to save battery
      */
     private void disableVoiceRecognition() {
-        if (voiceRecognitionManager != null) {
-            if (isVoiceRecognitionActive) {
-                voiceRecognitionManager.stopListening();
-                isVoiceRecognitionActive = false;
+        try {
+            if (voiceRecognitionManager != null) {
+                if (isVoiceRecognitionActive) {
+                    voiceRecognitionManager.stopListening();
+                    isVoiceRecognitionActive = false;
+                    ErrorHandler.logInfo("ProtectionService", "Voice recognition disabled to save battery");
+                }
             }
+        } catch (Exception e) {
+            ErrorHandler.handleError(this, "ProtectionService", "voice recognition disablement", e, false);
         }
     }
     
@@ -457,14 +539,22 @@ public class ProtectionService extends Service implements SensorEventListener {
     }
     
     private void sendSmartWatchAlert(String alertType) {
-        // Send message to smartwatch via Wearable Data API
-        String message = getAlertMessage(alertType);
-        wearCommunicator.sendAlert(alertType, message);
-        
-        // Also send local broadcast for backwards compatibility
-        Intent intent = new Intent("com.protector.app.SMARTWATCH_ALERT");
-        intent.putExtra("alert_type", alertType);
-        sendBroadcast(intent);
+        try {
+            // Send message to smartwatch via Wearable Data API
+            String message = getAlertMessage(alertType);
+            if (wearCommunicator != null) {
+                wearCommunicator.sendAlert(alertType, message);
+            } else {
+                ErrorHandler.logWarning("ProtectionService", "WearCommunicator not available, skipping watch alert");
+            }
+            
+            // Also send local broadcast for backwards compatibility
+            Intent intent = new Intent("com.protector.app.SMARTWATCH_ALERT");
+            intent.putExtra("alert_type", alertType);
+            sendBroadcast(intent);
+        } catch (Exception e) {
+            ErrorHandler.handleError(this, "ProtectionService", "smart watch alert", e, false);
+        }
     }
     
     private String getAlertMessage(String alertType) {
@@ -530,21 +620,35 @@ public class ProtectionService extends Service implements SensorEventListener {
     public void onDestroy() {
         super.onDestroy();
         
-        // Clean up all sensors and listeners
-        if (sensorManager != null) {
-            sensorManager.unregisterListener(this);
-            // Cancel significant motion sensor if active
-            if (significantMotionSensor != null && isSignificantMotionRegistered) {
-                sensorManager.cancelTriggerSensor(significantMotionTriggerListener, significantMotionSensor);
-                isSignificantMotionRegistered = false;
+        try {
+            // Clean up all sensors and listeners
+            if (sensorManager != null) {
+                try {
+                    sensorManager.unregisterListener(this);
+                    // Cancel significant motion sensor if active
+                    if (significantMotionSensor != null && isSignificantMotionRegistered) {
+                        sensorManager.cancelTriggerSensor(significantMotionTriggerListener, significantMotionSensor);
+                        isSignificantMotionRegistered = false;
+                    }
+                } catch (Exception e) {
+                    ErrorHandler.handleError(this, "ProtectionService", "sensor cleanup", e, false);
+                }
             }
+            
+            if (fusedLocationClient != null && locationCallback != null) {
+                try {
+                    fusedLocationClient.removeLocationUpdates(locationCallback);
+                } catch (Exception e) {
+                    ErrorHandler.handleError(this, "ProtectionService", "location tracking cleanup", e, false);
+                }
+            }
+            
+            // Properly cleanup voice recognition
+            disableVoiceRecognition();
+            
+            ErrorHandler.logInfo("ProtectionService", "Service destroyed successfully");
+        } catch (Exception e) {
+            ErrorHandler.handleError(this, "ProtectionService", "onDestroy", e, false);
         }
-        
-        if (fusedLocationClient != null && locationCallback != null) {
-            fusedLocationClient.removeLocationUpdates(locationCallback);
-        }
-        
-        // Properly cleanup voice recognition
-        disableVoiceRecognition();
     }
 }
