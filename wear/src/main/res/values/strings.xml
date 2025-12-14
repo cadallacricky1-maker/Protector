@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Protector</string>
+    <string name="status_protected">🛡️ PROTECTED</string>
+    <string name="status_inactive">⚠️ INACTIVE</string>
+    <string name="no_alerts">No alerts yet</string>
+    <string name="monitoring">Monitoring from phone</string>
+</resources>

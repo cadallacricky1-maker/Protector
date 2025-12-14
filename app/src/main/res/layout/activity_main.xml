@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal">
+
+        <TextView
+            android:id="@+id/statusText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/status_inactive"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/tvPremiumStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="FREE"
+            android:textSize="14sp"
+            android:textColor="#999999"
+            android:layout_marginBottom="16dp" />
+
+        <Button
+            android:id="@+id/btnUpgradePremium"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="✨ UPGRADE TO PREMIUM - $4.99/month"
+            android:backgroundTint="#FF6B35"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:layout_marginBottom="24dp" />
+
+        <Button
+            android:id="@+id/btnStartProtection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/start_protection"
+            android:layout_marginBottom="16dp" />
+
+        <Button
+            android:id="@+id/btnStopProtection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/stop_protection"
+            android:enabled="false"
+            android:layout_marginBottom="24dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/proximity_radius"
+            android:textSize="16sp"
+            android:layout_marginBottom="8dp" />
+
+        <EditText
+            android:id="@+id/etProximityRadius"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="numberDecimal"
+            android:hint="50"
+            android:layout_marginBottom="16dp" />
+
+        <Button
+            android:id="@+id/btnSetGeofence"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/set_geofence"
+            android:layout_marginBottom="24dp" />
+
+        <CheckBox
+            android:id="@+id/cbVoiceAuth"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/enable_voice_auth"
+            android:layout_marginBottom="16dp" />
+
+        <Button
+            android:id="@+id/btnTrainVoice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/train_voice"
+            android:layout_marginBottom="16dp" />
+
+    </LinearLayout>
+</ScrollView>
