@@ -14,6 +14,8 @@ import android.content.Context;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.protector.app.util.CrashReporter;
+
 /**
  * Centralized error handling utility
  * Provides consistent error logging and user-friendly messages

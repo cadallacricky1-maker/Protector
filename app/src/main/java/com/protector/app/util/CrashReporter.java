@@ -10,6 +10,7 @@ import android.content.Context;
 import android.util.Log;
 
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
+import com.protector.app.BuildConfig;
 
 /**
  * Centralized crash reporting and analytics utility using Firebase Crashlytics.
@@ -35,23 +36,51 @@ public class CrashReporter {
     /**
      * Initialize Firebase Crashlytics.
      * Call this in Application.onCreate() or MainActivity.onCreate().
+     * 
+     * Crashlytics is enabled in release builds only by default.
+     * For debug testing, call enableCrashlyticsInDebug() after initialization.
      */
     public static void initialize(Context context) {
         try {
             crashlytics = FirebaseCrashlytics.getInstance();
             
-            // Enable collection in production builds
-            crashlytics.setCrashlyticsCollectionEnabled(true);
+            // Enable collection in release builds only
+            // Debug builds can opt-in via enableCrashlyticsInDebug()
+            boolean isRelease = !BuildConfig.DEBUG;
+            crashlytics.setCrashlyticsCollectionEnabled(isRelease);
             
             initialized = true;
-            Log.i(TAG, "Firebase Crashlytics initialized successfully");
+            
+            if (isRelease) {
+                Log.i(TAG, "Firebase Crashlytics initialized successfully (RELEASE)");
+            } else {
+                Log.i(TAG, "Firebase Crashlytics initialized (DEBUG - collection disabled by default)");
+            }
             
             // Log initialization as breadcrumb
-            log("CrashReporter initialized");
+            log("CrashReporter initialized - build type: " + (isRelease ? "release" : "debug"));
             
         } catch (Exception e) {
             Log.e(TAG, "Failed to initialize Firebase Crashlytics", e);
             initialized = false;
+        }
+    }
+    
+    /**
+     * Enable Crashlytics in debug builds for testing.
+     * Only call this in debug builds when you want to test crash reporting.
+     */
+    public static void enableCrashlyticsInDebug() {
+        if (!isInitialized()) {
+            Log.w(TAG, "Cannot enable - Crashlytics not initialized");
+            return;
+        }
+        
+        try {
+            crashlytics.setCrashlyticsCollectionEnabled(true);
+            Log.i(TAG, "Crashlytics collection enabled for debug testing");
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to enable Crashlytics in debug", e);
         }
     }
     
