@@ -251,8 +251,9 @@ public void testSubscriptionActivity_ShowsPricing() {
 
 **Scenario B: App Active - Stationary**
 - App running, device stationary
-- Expected: ~8.5% per hour → ~200% for 24 hours
-- But with doze mode: ~12-15% actual drain per day
+- Theoretical: ~8.5% per hour if continuously active
+- Reality with Android Doze mode: Device enters deep sleep when stationary
+- Expected actual drain: ~12-15% per day (Doze mode reduces usage by 85-90%)
 
 **Scenario C: App Active - Moving**
 - App running, simulated movement (car/walking)
