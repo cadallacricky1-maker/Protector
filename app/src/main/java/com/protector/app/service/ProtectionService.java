@@ -70,6 +70,7 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.Priority;
 import com.protector.app.MainActivity;
 import com.protector.app.R;
+import com.protector.app.wear.WearCommunicator;
 
 public class ProtectionService extends Service implements SensorEventListener {
     private static final String CHANNEL_ID = "ProtectorServiceChannel";
@@ -109,6 +110,9 @@ public class ProtectionService extends Service implements SensorEventListener {
     // Voice recognition components (on-demand, not continuous)
     private VoiceRecognitionManager voiceRecognitionManager;
     private boolean isVoiceRecognitionActive = false;
+    
+    // Wear OS communication
+    private WearCommunicator wearCommunicator;
 
     @Override
     public void onCreate() {
@@ -118,6 +122,7 @@ public class ProtectionService extends Service implements SensorEventListener {
         notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        wearCommunicator = new WearCommunicator(this);
         
         proximityRadius = preferences.getFloat("proximity_radius", 50.0f);
         
@@ -452,12 +457,29 @@ public class ProtectionService extends Service implements SensorEventListener {
     }
     
     private void sendSmartWatchAlert(String alertType) {
-        // Send message to smartwatch via Wearable API
-        // This would use Google Wearable MessageClient
-        // For now, just log the intent
+        // Send message to smartwatch via Wearable Data API
+        String message = getAlertMessage(alertType);
+        wearCommunicator.sendAlert(alertType, message);
+        
+        // Also send local broadcast for backwards compatibility
         Intent intent = new Intent("com.protector.app.SMARTWATCH_ALERT");
         intent.putExtra("alert_type", alertType);
         sendBroadcast(intent);
+    }
+    
+    private String getAlertMessage(String alertType) {
+        switch (alertType) {
+            case "THEFT_DETECTED":
+                return "Device is being moved away!";
+            case "PROXIMITY_BREACH":
+                return "Don't forget your device";
+            case "GEOFENCE_EXIT":
+                return "Device left safe zone";
+            case "UNAUTHORIZED_VOICE":
+                return "Unauthorized voice detected";
+            default:
+                return "Alert: " + alertType;
+        }
     }
     
     private void vibrateDevice() {

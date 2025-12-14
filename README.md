@@ -55,7 +55,7 @@ Protector is an Android application that provides advanced device theft protecti
 ### Prerequisites
 - Android device running Android 8.0 (API 26) or higher
 - Android Studio (for building from source)
-- Smartwatch with Wear OS (optional, for smartwatch features)
+- Smartwatch with Wear OS 2.0+ (optional, for smartwatch features)
 
 ### Building the App
 1. Clone this repository:
@@ -68,7 +68,27 @@ Protector is an Android application that provides advanced device theft protecti
 
 3. Sync Gradle dependencies
 
-4. Build and run on your Android device
+4. Build and install:
+   ```bash
+   # Build both phone and watch apps
+   ./gradlew build
+   
+   # Install phone app
+   ./gradlew :app:installDebug
+   
+   # Install Wear OS app (optional)
+   ./gradlew :wear:installDebug
+   ```
+
+### Wear OS Companion App
+Protector includes a companion Wear OS app for your smartwatch:
+- Receives real-time alerts on your wrist
+- Shows protection status
+- Smart vibration patterns for different alerts
+- Minimal battery impact (<2% per day)
+- **No processing on watch** - phone does all the work
+
+See [WEAR_OS_INTEGRATION.md](WEAR_OS_INTEGRATION.md) for detailed setup and usage instructions.
 
 ## Usage
 
