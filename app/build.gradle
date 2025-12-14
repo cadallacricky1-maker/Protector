@@ -11,14 +11,45 @@ android {
         minSdk 26
         targetSdk 33
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.0"
+        
+        // Build configuration fields
+        buildConfigField "long", "BUILD_TIMESTAMP", System.currentTimeMillis() + "L"
+        buildConfigField "String", "BUILD_TYPE_NAME", "\"${name}\""
+        
+        // Test instrumentation runner
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
-        release {
+        debug {
+            applicationIdSuffix ".debug"
+            versionNameSuffix "-debug"
+            debuggable true
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            // Enable for leak detection in debug
+            // debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.12'
         }
+        
+        release {
+            // Enable code shrinking, obfuscation, and optimization for production
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            
+            // Signing config (set up your signing key)
+            // signingConfig signingConfigs.release
+        }
+    }
+    
+    // Lint options
+    lintOptions {
+        checkReleaseBuilds true
+        abortOnError false
+        // Treat warnings as errors
+        warningsAsErrors true
+        // Disable checks that are not relevant
+        disable 'MissingTranslation'
     }
     
     compileOptions {
@@ -28,13 +59,30 @@ android {
 }
 
 dependencies {
+    // Core Android libraries
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.9.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    
+    // Google Play Services
     implementation 'com.google.android.gms:play-services-location:21.0.1'
     implementation 'com.google.android.gms:play-services-wearable:18.0.0'
+    
     // Vosk speech recognition
     implementation 'com.alphacephei:vosk-android:0.3.32'
+    
     // Google Play Billing for subscriptions
     implementation 'com.android.billingclient:billing:6.1.0'
+    
+    // Testing dependencies
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.mockito:mockito-core:5.3.1'
+    testImplementation 'androidx.test:core:1.5.0'
+    testImplementation 'org.robolectric:robolectric:4.10'
+    
+    // Android instrumentation tests
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    androidTestImplementation 'androidx.test:runner:1.5.2'
+    androidTestImplementation 'androidx.test:rules:1.5.0'
 }
