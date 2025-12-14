@@ -26,21 +26,27 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.protector.app.billing.PremiumFeatures;
+import com.protector.app.billing.SubscriptionManager;
 import com.protector.app.service.ProtectionService;
 
 public class MainActivity extends AppCompatActivity {
     private static final int PERMISSION_REQUEST_CODE = 1001;
     
     private TextView statusText;
+    private TextView tvPremiumStatus;
     private Button btnStartProtection;
     private Button btnStopProtection;
     private Button btnSetGeofence;
     private Button btnTrainVoice;
+    private Button btnUpgradePremium;
     private EditText etProximityRadius;
     private CheckBox cbVoiceAuth;
     
     private SharedPreferences preferences;
+    private SubscriptionManager subscriptionManager;
     private boolean isServiceRunning = false;
+    private boolean isPremium = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
         preferences = getSharedPreferences("ProtectorPrefs", MODE_PRIVATE);
         
         initViews();
+        setupSubscriptionManager();
         checkAndRequestPermissions();
         loadSettings();
         setupListeners();
@@ -57,12 +64,68 @@ public class MainActivity extends AppCompatActivity {
     
     private void initViews() {
         statusText = findViewById(R.id.statusText);
+        tvPremiumStatus = findViewById(R.id.tvPremiumStatus);
         btnStartProtection = findViewById(R.id.btnStartProtection);
         btnStopProtection = findViewById(R.id.btnStopProtection);
         btnSetGeofence = findViewById(R.id.btnSetGeofence);
         btnTrainVoice = findViewById(R.id.btnTrainVoice);
+        btnUpgradePremium = findViewById(R.id.btnUpgradePremium);
         etProximityRadius = findViewById(R.id.etProximityRadius);
         cbVoiceAuth = findViewById(R.id.cbVoiceAuth);
+    }
+    
+    private void setupSubscriptionManager() {
+        subscriptionManager = new SubscriptionManager(this);
+        subscriptionManager.setStatusListener(new SubscriptionManager.SubscriptionStatusListener() {
+            @Override
+            public void onSubscriptionStatusChanged(boolean premium) {
+                isPremium = premium;
+                updatePremiumUI();
+            }
+            
+            @Override
+            public void onSubscriptionError(String message) {
+                Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
+            }
+        });
+        
+        isPremium = subscriptionManager.isPremium();
+        updatePremiumUI();
+    }
+    
+    private void updatePremiumUI() {
+        if (isPremium) {
+            tvPremiumStatus.setText("✨ PREMIUM ACTIVE");
+            tvPremiumStatus.setTextColor(getResources().getColor(android.R.color.holo_orange_dark));
+            btnUpgradePremium.setText("MANAGE PREMIUM");
+        } else {
+            tvPremiumStatus.setText("FREE");
+            tvPremiumStatus.setTextColor(getResources().getColor(android.R.color.darker_gray));
+            btnUpgradePremium.setText("✨ UPGRADE TO PREMIUM - $4.99/month");
+        }
+        
+        // Update feature availability based on premium status
+        updateFeatureAccess();
+    }
+    
+    private void updateFeatureAccess() {
+        // Voice recognition only for premium
+        cbVoiceAuth.setEnabled(PremiumFeatures.hasVoiceRecognition(isPremium));
+        btnTrainVoice.setEnabled(PremiumFeatures.hasVoiceRecognition(isPremium));
+        
+        if (!isPremium) {
+            cbVoiceAuth.setChecked(false);
+        }
+        
+        // Custom proximity radius only for premium
+        if (!PremiumFeatures.hasCustomProximityRadius(isPremium)) {
+            etProximityRadius.setText("50");
+            etProximityRadius.setEnabled(false);
+            etProximityRadius.setHint("50 (Premium for custom)");
+        } else {
+            etProximityRadius.setEnabled(true);
+            etProximityRadius.setHint("1-10000");
+        }
     }
     
     private void loadSettings() {
@@ -79,8 +142,20 @@ public class MainActivity extends AppCompatActivity {
         btnSetGeofence.setOnClickListener(v -> setGeofence());
         btnTrainVoice.setOnClickListener(v -> trainVoiceModel());
         
+        btnUpgradePremium.setOnClickListener(v -> {
+            Intent intent = new Intent(this, SubscriptionActivity.class);
+            startActivity(intent);
+        });
+        
         cbVoiceAuth.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            preferences.edit().putBoolean("voice_auth_enabled", isChecked).apply();
+            if (isChecked && !PremiumFeatures.hasVoiceRecognition(isPremium)) {
+                buttonView.setChecked(false);
+                Toast.makeText(this, "Voice authentication is a Premium feature", Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(this, SubscriptionActivity.class);
+                startActivity(intent);
+            } else {
+                preferences.edit().putBoolean("voice_auth_enabled", isChecked).apply();
+            }
         });
     }
     

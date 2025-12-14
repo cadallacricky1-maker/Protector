@@ -30,6 +30,9 @@
     
     <!-- Internet permission for Google Speech Recognition fallback -->
     <uses-permission android:name="android.permission.INTERNET" />
+    
+    <!-- Permission for in-app billing -->
+    <uses-permission android:name="com.android.vending.BILLING" />
 
     <application
         android:allowBackup="true"
@@ -48,6 +51,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        
+        <!-- Subscription Activity for Premium features -->
+        <activity
+            android:name=".SubscriptionActivity"
+            android:exported="false"
+            android:label="Premium Subscription" />
         
         <!-- Protection Service that monitors device movement and proximity -->
         <service

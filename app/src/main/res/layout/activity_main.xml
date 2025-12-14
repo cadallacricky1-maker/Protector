@@ -18,6 +18,25 @@
             android:text="@string/status_inactive"
             android:textSize="20sp"
             android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/tvPremiumStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="FREE"
+            android:textSize="14sp"
+            android:textColor="#999999"
+            android:layout_marginBottom="16dp" />
+
+        <Button
+            android:id="@+id/btnUpgradePremium"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="✨ UPGRADE TO PREMIUM - $4.99/month"
+            android:backgroundTint="#FF6B35"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
             android:layout_marginBottom="24dp" />
 
         <Button

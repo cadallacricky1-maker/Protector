@@ -19,4 +19,8 @@
     <string name="train_voice">Train Voice Model</string>
     <string name="status_active">Status: Active</string>
     <string name="status_inactive">Status: Inactive</string>
+    <string name="subscription_title">Protector Premium</string>
+    <string name="subscription_price">$4.99/month</string>
+    <string name="premium_feature_locked">🔒 Premium Only</string>
+    <string name="upgrade_to_premium">Upgrade to Premium</string>
 </resources>

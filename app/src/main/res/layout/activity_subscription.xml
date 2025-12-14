@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F5F5"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal">
+
+        <!-- Premium Badge -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="✨ PROTECTOR PREMIUM ✨"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="#FF6B35"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Unlock Advanced Protection"
+            android:textSize="16sp"
+            android:textColor="#666666"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Pricing Card -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:elevation="4dp"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="24dp"
+                android:background="#FFFFFF">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="$4.99"
+                    android:textSize="48sp"
+                    android:textStyle="bold"
+                    android:textColor="#FF6B35"
+                    android:layout_gravity="center" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="per month"
+                    android:textSize="16sp"
+                    android:textColor="#999999"
+                    android:layout_gravity="center"
+                    android:layout_marginBottom="16dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Cancel anytime • No commitment"
+                    android:textSize="12sp"
+                    android:textColor="#666666"
+                    android:layout_gravity="center" />
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- Premium Features List -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Premium Features"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="#333333"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Feature Items -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="24dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="✓ AI-Powered Theft Detection"
+                android:textSize="16sp"
+                android:textColor="#333333"
+                android:padding="8dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="✓ Voice Recognition &amp; Authentication"
+                android:textSize="16sp"
+                android:textColor="#333333"
+                android:padding="8dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="✓ Unlimited Geo-fence Locations"
+                android:textSize="16sp"
+                android:textColor="#333333"
+                android:padding="8dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="✓ Custom Proximity Radius (1-10000m)"
+                android:textSize="16sp"
+                android:textColor="#333333"
+                android:padding="8dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="✓ Unlimited Alerts"
+                android:textSize="16sp"
+                android:textColor="#333333"
+                android:padding="8dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="✓ Multi-Device Sync"
+                android:textSize="16sp"
+                android:textColor="#333333"
+                android:padding="8dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="✓ Cloud Backup &amp; Restore"
+                android:textSize="16sp"
+                android:textColor="#333333"
+                android:padding="8dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="✓ Scheduled Protection"
+                android:textSize="16sp"
+                android:textColor="#333333"
+                android:padding="8dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="✓ Advanced Analytics &amp; History"
+                android:textSize="16sp"
+                android:textColor="#333333"
+                android:padding="8dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="✓ Family Sharing (5 devices)"
+                android:textSize="16sp"
+                android:textColor="#333333"
+                android:padding="8dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="✓ No Ads"
+                android:textSize="16sp"
+                android:textColor="#333333"
+                android:padding="8dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="✓ Priority Support"
+                android:textSize="16sp"
+                android:textColor="#333333"
+                android:padding="8dp" />
+
+        </LinearLayout>
+
+        <!-- Subscribe Button -->
+        <Button
+            android:id="@+id/btnSubscribe"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:text="START 7-DAY FREE TRIAL"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:backgroundTint="#FF6B35"
+            android:textColor="#FFFFFF"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:id="@+id/tvSubscriptionStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Not subscribed"
+            android:textSize="14sp"
+            android:textColor="#999999"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnRestorePurchases"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Restore Purchases"
+            android:textSize="14sp"
+            android:backgroundTint="#CCCCCC"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="• Free trial for 7 days, then $4.99/month\n• Subscription automatically renews unless cancelled\n• Cancel anytime in Google Play Store\n• By subscribing, you agree to our Terms of Service"
+            android:textSize="11sp"
+            android:textColor="#999999"
+            android:gravity="center"
+            android:layout_marginTop="8dp" />
+
+    </LinearLayout>
+
+</ScrollView>
