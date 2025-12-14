@@ -29,6 +29,7 @@ import androidx.core.content.ContextCompat;
 import com.protector.app.billing.PremiumFeatures;
 import com.protector.app.billing.SubscriptionManager;
 import com.protector.app.service.ProtectionService;
+import com.protector.app.util.CrashReporter;
 
 public class MainActivity extends AppCompatActivity {
     private static final int PERMISSION_REQUEST_CODE = 1001;
@@ -52,6 +53,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        
+        // Initialize crash reporting first
+        CrashReporter.initialize(this);
+        CrashReporter.log("MainActivity onCreate");
         
         preferences = getSharedPreferences("ProtectorPrefs", MODE_PRIVATE);
         
@@ -81,6 +86,9 @@ public class MainActivity extends AppCompatActivity {
             public void onSubscriptionStatusChanged(boolean premium) {
                 isPremium = premium;
                 updatePremiumUI();
+                
+                // Log premium status to crash reports
+                CrashReporter.logPremiumStatus(premium);
             }
             
             @Override
@@ -91,6 +99,9 @@ public class MainActivity extends AppCompatActivity {
         
         isPremium = subscriptionManager.isPremium();
         updatePremiumUI();
+        
+        // Initial premium status logging
+        CrashReporter.logPremiumStatus(isPremium);
     }
     
     private void updatePremiumUI() {

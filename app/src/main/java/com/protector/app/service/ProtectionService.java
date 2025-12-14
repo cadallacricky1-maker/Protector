@@ -71,6 +71,7 @@ import com.google.android.gms.location.Priority;
 import com.protector.app.MainActivity;
 import com.protector.app.R;
 import com.protector.app.util.ErrorHandler;
+import com.protector.app.util.CrashReporter;
 import com.protector.app.wear.WearCommunicator;
 
 public class ProtectionService extends Service implements SensorEventListener {
@@ -144,8 +145,12 @@ public class ProtectionService extends Service implements SensorEventListener {
             
             startForeground(NOTIFICATION_ID, createNotification("Monitoring your device (Battery Optimized)"));
             ErrorHandler.logInfo("ProtectionService", "Service started successfully");
+            
+            // Log component state for crash reports
+            CrashReporter.logComponentState("ProtectionService", "started");
         } catch (Exception e) {
             ErrorHandler.handleError(this, "ProtectionService", "onCreate", e);
+            CrashReporter.logComponentState("ProtectionService", "failed_to_start");
             stopSelf(); // Stop service if critical initialization fails
         }
     }

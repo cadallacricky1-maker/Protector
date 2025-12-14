@@ -36,6 +36,12 @@ public class ErrorHandler {
         String errorMessage = String.format("[%s] Error in %s: %s", component, operation, e.getMessage());
         Log.e(TAG, errorMessage, e);
         
+        // Report to Crashlytics
+        CrashReporter.setCustomKey("error_component", component);
+        CrashReporter.setCustomKey("error_operation", operation);
+        CrashReporter.logException(e);
+        CrashReporter.log("Error in " + component + ": " + operation);
+        
         if (showToast && context != null) {
             // Show user-friendly message
             String userMessage = getUserFriendlyMessage(component, operation, e);
@@ -90,6 +96,7 @@ public class ErrorHandler {
      */
     public static void logWarning(String component, String message) {
         Log.w(TAG, String.format("[%s] Warning: %s", component, message));
+        CrashReporter.log("WARNING [" + component + "]: " + message);
     }
     
     /**
@@ -97,6 +104,7 @@ public class ErrorHandler {
      */
     public static void logInfo(String component, String message) {
         Log.i(TAG, String.format("[%s] %s", component, message));
+        CrashReporter.log("INFO [" + component + "]: " + message);
     }
     
     /**
