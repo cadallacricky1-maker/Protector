@@ -34,8 +34,10 @@ public class MainActivity extends Activity {
     private TextView tvStatus;
     private TextView tvLastAlert;
     private TextView tvAlertTime;
+    private TextView tvBodySensorStatus;
     private SharedPreferences preferences;
     private Vibrator vibrator;
+    private BodySensorMonitor bodySensorMonitor;
     
     private final BroadcastReceiver alertReceiver = new BroadcastReceiver() {
         @Override
@@ -57,16 +59,58 @@ public class MainActivity extends Activity {
         initViews();
         loadLastAlert();
         registerAlertReceiver();
+        initBodySensorMonitoring();
     }
     
     private void initViews() {
         tvStatus = findViewById(R.id.tvStatus);
         tvLastAlert = findViewById(R.id.tvLastAlert);
         tvAlertTime = findViewById(R.id.tvAlertTime);
+        tvBodySensorStatus = findViewById(R.id.tvBodySensorStatus);
         
         // Show current protection status
         boolean isActive = preferences.getBoolean("protection_active", false);
         updateStatus(isActive);
+    }
+    
+    private void initBodySensorMonitoring() {
+        bodySensorMonitor = new BodySensorMonitor(this);
+        
+        if (bodySensorMonitor.isBodySensorAvailable()) {
+            bodySensorMonitor.startMonitoring(new BodySensorMonitor.BodySensorListener() {
+                @Override
+                public void onWatchRemoved() {
+                    runOnUiThread(() -> {
+                        tvBodySensorStatus.setText("⚠️ Watch Removed");
+                        tvBodySensorStatus.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
+                        
+                        // Alert vibration
+                        if (vibrator != null && vibrator.hasVibrator()) {
+                            vibrator.vibrate(new long[]{0, 500, 200, 500, 200, 500}, -1);
+                        }
+                    });
+                }
+                
+                @Override
+                public void onWatchWorn() {
+                    runOnUiThread(() -> {
+                        tvBodySensorStatus.setText("✓ Watch On Wrist");
+                        tvBodySensorStatus.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
+                    });
+                }
+                
+                @Override
+                public void onSensorUnavailable() {
+                    runOnUiThread(() -> {
+                        tvBodySensorStatus.setText("Body sensor unavailable");
+                        tvBodySensorStatus.setTextColor(getResources().getColor(android.R.color.darker_gray));
+                    });
+                }
+            });
+        } else {
+            tvBodySensorStatus.setText("Body sensor not supported");
+            tvBodySensorStatus.setTextColor(getResources().getColor(android.R.color.darker_gray));
+        }
     }
     
     private void loadLastAlert() {
@@ -166,6 +210,10 @@ public class MainActivity extends Activity {
             unregisterReceiver(alertReceiver);
         } catch (IllegalArgumentException e) {
             // Already unregistered
+        }
+        
+        if (bodySensorMonitor != null) {
+            bodySensorMonitor.stopMonitoring();
         }
     }
 }

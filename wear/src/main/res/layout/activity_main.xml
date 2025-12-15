@@ -78,6 +78,32 @@
                 android:gravity="center"
                 android:layout_marginBottom="16dp" />
 
+            <!-- Divider -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#333333"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Body Sensor Status -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="BODY DETECTION"
+                android:textSize="12sp"
+                android:textColor="#999999"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/tvBodySensorStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Initializing..."
+                android:textSize="14sp"
+                android:textColor="#FFFFFF"
+                android:gravity="center"
+                android:layout_marginBottom="16dp" />
+
             <!-- Info Text -->
             <TextView
                 android:layout_width="wrap_content"
